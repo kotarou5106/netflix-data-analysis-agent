@@ -38,6 +38,14 @@ V2 使用 LangGraph `StateGraph` 表达 Agent 节点流转，流程为 `planner 
 
 为了保持本地运行的稳定性，`run_agent(user_query: str)` 的外部调用方式保持不变；如果当前环境没有安装 LangGraph，系统会优雅 fallback 到原来的手写 pipeline。
 
+## LLM Planner with Fallback / 带回退机制的大模型规划器
+
+V3 支持可选 LLM Planner。LLM 只负责根据用户问题生成结构化 JSON 计划，字段包括 `intent` 和 `plan`，每个 plan step 必须包含 `step_id`、`tool`、`description` 和 `depends_on`。
+
+系统会对 LLM 输出进行 schema 校验，并限制合法 intent 和 tool 名称。如果没有配置 `OPENAI_API_KEY`、LLM 不可用、JSON 解析失败、字段缺失或工具名不合法，Planner 会自动回退到规则 Planner，保证 CLI 和评测流程仍可运行。
+
+LLM 不直接执行 SQL，也不直接调用工具；SQL 查询、工具执行和报告校验仍由现有安全模块负责。
+
 ## Implemented Features / 已实现功能
 
 - Intent Detection / 意图识别
@@ -53,7 +61,7 @@ V2 使用 LangGraph `StateGraph` 表达 Agent 节点流转，流程为 `planner 
 
 - SQL Tool 只允许执行 `SELECT` 和 `WITH` 查询。
 - 明确禁止 `DROP` / `DELETE` / `UPDATE` / `INSERT` / `ALTER` / `CREATE` / `TRUNCATE`。
-- 当前版本不接入 LLM，因此 LLM 不会直接生成或执行 SQL。
+- 可选 LLM Planner 只生成结构化计划，不直接生成或执行 SQL。
 - SQL 查询使用固定模板和字段检查，避免任意 SQL 执行。
 - Verifier 会检查强因果表达，避免把相关性直接写成因果性。
 - 报告要求包含 Evidence / 证据 和 Limitations / 限制说明。
@@ -124,7 +132,7 @@ python3 -m src.evaluation.eval_runner --all
 
 ## Current Limitations / 当前限制
 
-- 当前没有接入真实 LLM。
+- 当前 LLM Planner 是可选能力；未配置 `OPENAI_API_KEY` 时会使用规则 Planner。
 - RAG 仍是轻量关键词检索，没有使用生产级向量数据库。
 - SQL 主要使用固定模板，不支持复杂自由分析问题。
 - Python Analysis Tool 只包含少量固定统计函数。
