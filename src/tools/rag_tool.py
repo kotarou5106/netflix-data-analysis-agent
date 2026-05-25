@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from pathlib import Path
 
 from src.config import DOCS_DIR
 
@@ -20,8 +19,17 @@ def search_knowledge(query: str, top_k: int = 3) -> list[dict[str, object]]:
         return []
 
     expanded_query = _expand_query(query)
-    query_tokens = _tokenize(expanded_query)
-    query_terms = _query_terms(expanded_query)
+    embedding_results = _embedding_search(expanded_query, chunks)
+    if embedding_results is None:
+        return _keyword_search(expanded_query, chunks, top_k)
+
+    keyword_results = _keyword_search(expanded_query, chunks, len(chunks))
+    return _merge_embedding_and_keyword_results(embedding_results, keyword_results, top_k)
+
+
+def _keyword_search(query: str, chunks: list[KnowledgeChunk], top_k: int) -> list[dict[str, object]]:
+    query_tokens = _tokenize(query)
+    query_terms = _query_terms(query)
     if not query_tokens and not query_terms:
         return []
 
@@ -40,6 +48,70 @@ def search_knowledge(query: str, top_k: int = 3) -> list[dict[str, object]]:
     scored_results = list(best_result_by_source.values())
     scored_results.sort(key=lambda item: item["score"], reverse=True)
     return scored_results[:top_k]
+
+
+def _embedding_search(query: str, chunks: list[KnowledgeChunk]) -> list[dict[str, object]] | None:
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+    except Exception:
+        return None
+
+    try:
+        documents = [chunk.content for chunk in chunks]
+        vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4))
+        document_vectors = vectorizer.fit_transform(documents)
+        query_vector = vectorizer.transform([query])
+        scores = cosine_similarity(query_vector, document_vectors).flatten()
+    except Exception:
+        return None
+
+    best_result_by_source = {}
+    for chunk, score in zip(chunks, scores):
+        if score <= 0:
+            continue
+        current_result = best_result_by_source.get(chunk.source)
+        if current_result is None or score > current_result["score"]:
+            best_result_by_source[chunk.source] = {
+                "source": chunk.source,
+                "content": chunk.content,
+                "score": float(score),
+            }
+
+    results = list(best_result_by_source.values())
+    results.sort(key=lambda item: item["score"], reverse=True)
+    return results
+
+
+def _merge_embedding_and_keyword_results(
+    embedding_results: list[dict[str, object]],
+    keyword_results: list[dict[str, object]],
+    top_k: int,
+) -> list[dict[str, object]]:
+    merged_results = {}
+
+    for result in embedding_results:
+        merged_results[result["source"]] = {
+            "source": result["source"],
+            "content": result["content"],
+            "score": float(result["score"]) * 0.2,
+        }
+
+    for result in keyword_results:
+        source = result["source"]
+        if source not in merged_results:
+            merged_results[source] = {
+                "source": source,
+                "content": result["content"],
+                "score": 0.0,
+            }
+        merged_results[source]["score"] += float(result["score"])
+        if len(str(result["content"])) > len(str(merged_results[source]["content"])):
+            merged_results[source]["content"] = result["content"]
+
+    results = [result for result in merged_results.values() if result["score"] > 0]
+    results.sort(key=lambda item: item["score"], reverse=True)
+    return results[:top_k]
 
 
 def _load_chunks() -> list[KnowledgeChunk]:

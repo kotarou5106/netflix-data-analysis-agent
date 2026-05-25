@@ -46,6 +46,12 @@ V3 支持可选 LLM Planner。LLM 只负责根据用户问题生成结构化 JSO
 
 LLM 不直接执行 SQL，也不直接调用工具；SQL 查询、工具执行和报告校验仍由现有安全模块负责。
 
+## Embedding RAG with Fallback / 带回退机制的 Embedding RAG
+
+V4 增强了 RAG Tool：在本地依赖可用时，系统会使用轻量 TF-IDF embedding-like 检索作为辅助召回，并与原有关键词检索结果做合并排序。该方案不调用在线 API，也不依赖外部向量数据库。
+
+如果本地 embedding 依赖不可用、向量化失败或检索过程异常，`search_knowledge(query, top_k=3)` 会自动回退到原有关键词检索，保持对外接口和主链路行为稳定。
+
 ## Implemented Features / 已实现功能
 
 - Intent Detection / 意图识别
