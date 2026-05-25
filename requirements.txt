@@ -1,0 +1,7 @@
+duckdb
+pandas
+pydantic
+pytest
+python-dotenv
+scikit-learn
+matplotlib

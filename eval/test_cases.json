@@ -1,0 +1,50 @@
+[
+  {
+    "question": "分析不同订阅类型的流失率",
+    "expected_intent": "churn_analysis",
+    "expected_tools": ["rag_search", "sql_query", "python_analysis"],
+    "required_sections": ["Evidence / 证据", "Key Findings / 关键发现", "Limitations / 限制说明"]
+  },
+  {
+    "question": "分析不同地区用户的 churn 情况",
+    "expected_intent": "churn_analysis",
+    "expected_tools": ["rag_search", "sql_query", "python_analysis"],
+    "required_sections": ["Evidence / 证据", "Business Suggestions / 业务建议", "Limitations / 限制说明"]
+  },
+  {
+    "question": "完播率是什么意思",
+    "expected_intent": "metric_explanation",
+    "expected_tools": ["rag_search", "report_writer"],
+    "required_sections": ["Evidence / 证据", "Key Findings / 关键发现", "Limitations / 限制说明"]
+  },
+  {
+    "question": "推荐点击率的定义是什么",
+    "expected_intent": "metric_explanation",
+    "expected_tools": ["rag_search", "report_writer"],
+    "required_sections": ["Evidence / 证据", "Intent / 意图", "Limitations / 限制说明"]
+  },
+  {
+    "question": "把用户分层",
+    "expected_intent": "user_segmentation",
+    "expected_tools": ["rag_search", "sql_query", "python_analysis"],
+    "required_sections": ["Evidence / 证据", "Key Findings / 关键发现", "Limitations / 限制说明"]
+  },
+  {
+    "question": "做一个用户群体 segmentation 分析",
+    "expected_intent": "user_segmentation",
+    "expected_tools": ["rag_search", "sql_query", "python_analysis"],
+    "required_sections": ["Evidence / 证据", "Analysis Plan / 分析计划", "Limitations / 限制说明"]
+  },
+  {
+    "question": "分析用户观看行为",
+    "expected_intent": "general_analysis",
+    "expected_tools": ["rag_search", "sql_query"],
+    "required_sections": ["Evidence / 证据", "Key Findings / 关键发现", "Limitations / 限制说明"]
+  },
+  {
+    "question": "查看数据整体概览并总结观察结果",
+    "expected_intent": "general_analysis",
+    "expected_tools": ["rag_search", "sql_query"],
+    "required_sections": ["Evidence / 证据", "Tools Used / 使用工具", "Limitations / 限制说明"]
+  }
+]
