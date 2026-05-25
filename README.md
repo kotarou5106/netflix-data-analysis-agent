@@ -1,5 +1,10 @@
 # Netflix Data Analysis Agent
 
+## Version / 当前版本
+
+Current Version:
+V4 - LangGraph + LLM Planner Fallback + Embedding RAG Fallback
+
 ## Project Overview / 项目概述
 
 Netflix Data Analysis Agent 是一个面向 Netflix 用户行为数据的本地数据分析 Agent 项目。它从自然语言问题出发，完成意图识别、任务规划、工具选择、数据查询、统计分析、知识库检索、报告生成和结果校验。
@@ -34,7 +39,7 @@ User Query
 
 ## LangGraph Workflow / LangGraph 工作流
 
-V2 使用 LangGraph `StateGraph` 表达 Agent 节点流转，流程为 `planner -> tool_router -> executor -> report_writer -> verifier -> END`。每个 LangGraph node 都只是包装已有模块函数，不改变 V1 的业务逻辑。
+V4 使用 LangGraph `StateGraph` 表达 Agent 节点流转，流程为 `planner -> tool_router -> executor -> report_writer -> verifier -> END`。每个 LangGraph node 都只是包装已有模块函数，不改变 Agent project 的业务逻辑。
 
 为了保持本地运行的稳定性，`run_agent(user_query: str)` 的外部调用方式保持不变；如果当前环境没有安装 LangGraph，系统会优雅 fallback 到原来的手写 pipeline。
 
@@ -62,6 +67,9 @@ V4 增强了 RAG Tool：在本地依赖可用时，系统会使用轻量 TF-IDF 
 - Report Writer / 报告生成
 - Verifier / 结果校验
 - Evaluation Runner / 本地评测器
+- LangGraph Workflow / LangGraph 工作流
+- LLM Planner with Fallback / 带回退机制的大模型规划器
+- Embedding RAG with Fallback / 带回退机制的 Embedding RAG
 
 ## Safety Design / 安全设计
 
@@ -147,15 +155,14 @@ python3 -m src.evaluation.eval_runner --all
 
 ## Future Work / 后续扩展
 
-- LLM Planner
-- LangGraph
-- Embedding RAG
 - BM25 + Vector Hybrid Retrieval
 - Rerank
 - MCP Server
 - Streamlit UI
 - More Evaluation Cases
+- Human-in-the-Loop
+- Better SQL generation or schema-aware Text-to-SQL
 
 ## Resume Description / 简历描述
 
-构建了一个基于 Netflix 用户行为数据的本地数据分析 Agent，覆盖意图识别、结构化任务规划、工具路由、业务知识库检索、安全 SQL 查询、Python 统计分析、Markdown 报告生成、结果校验和本地评测流程。项目强调分析证据和限制说明，通过 Verifier 约束相关性与因果性的表述，并使用 Evaluation Runner 对意图识别、工具选择和报告完整性进行回归评估。
+构建了一个基于 Netflix 用户行为数据的本地数据分析 Agent，覆盖意图识别、结构化任务规划、LangGraph 状态图编排、工具路由、业务知识库检索、安全 SQL 查询、Python 统计分析、Markdown 报告生成、结果校验和本地评测流程。项目支持 LLM Planner fallback 与 Embedding RAG fallback，在缺少 API Key、模型输出不合法或本地 embedding 依赖不可用时自动回退到稳定的规则规划和关键词检索。项目强调分析证据和限制说明，通过 Verifier 约束相关性与因果性的表述，并使用 Evaluation Runner 对意图识别、工具选择和报告完整性进行回归评估。
