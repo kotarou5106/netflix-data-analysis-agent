@@ -32,6 +32,12 @@ User Query
 -> Final Report
 ```
 
+## LangGraph Workflow / LangGraph 工作流
+
+V2 使用 LangGraph `StateGraph` 表达 Agent 节点流转，流程为 `planner -> tool_router -> executor -> report_writer -> verifier -> END`。每个 LangGraph node 都只是包装已有模块函数，不改变 V1 的业务逻辑。
+
+为了保持本地运行的稳定性，`run_agent(user_query: str)` 的外部调用方式保持不变；如果当前环境没有安装 LangGraph，系统会优雅 fallback 到原来的手写 pipeline。
+
 ## Implemented Features / 已实现功能
 
 - Intent Detection / 意图识别
